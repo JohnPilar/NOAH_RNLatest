@@ -1,0 +1,29 @@
+{
+  "project_info": {
+    "project_number": "853278573995",
+    "project_id": "noah-mobile-8eb5a",
+    "storage_bucket": "noah-mobile-8eb5a.appspot.com"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:853278573995:android:08600f1b38aa2da8edbeee",
+        "android_client_info": {
+          "package_name": "com.promptus8.noah"
+        }
+      },
+      "oauth_client": [],
+      "api_key": [
+        {
+          "current_key": "AIzaSyAWskbqJE_Hgw4rcenNKaJjlknj2vHVvek"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": []
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}

@@ -1,4 +1,4 @@
-package com.noah_rnlatest
+package com.promptus8.noah
 
 import com.facebook.react.ReactActivity
 import com.facebook.react.ReactActivityDelegate

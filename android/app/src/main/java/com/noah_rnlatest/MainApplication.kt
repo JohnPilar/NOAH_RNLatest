@@ -1,4 +1,4 @@
-package com.noah_rnlatest
+package com.promptus8.noah
 
 import android.app.Application
 import com.facebook.react.PackageList

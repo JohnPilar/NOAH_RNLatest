@@ -1,0 +1,184 @@
+diff --git a/node_modules/@type-any/react-native-clear-cache/android/build.gradle b/node_modules/@type-any/react-native-clear-cache/android/build.gradle
+index 77289fc..fcb8a7e 100644
+--- a/node_modules/@type-any/react-native-clear-cache/android/build.gradle
++++ b/node_modules/@type-any/react-native-clear-cache/android/build.gradle
+@@ -1,131 +1,73 @@
+ buildscript {
+-  // Buildscript is evaluated before everything else so we can't use getExtOrDefault
+-  def kotlin_version = rootProject.ext.has('kotlinVersion') ? rootProject.ext.get('kotlinVersion') : project.properties['ClearCache_kotlinVersion']
+-
+-  repositories {
+-    google()
+-    jcenter()
+-  }
+-
+-  dependencies {
+-    classpath 'com.android.tools.build:gradle:3.2.1'
+-    // noinspection DifferentKotlinGradleVersion
+-    classpath "org.jetbrains.kotlin:kotlin-gradle-plugin:$kotlin_version"
+-  }
++    ext.safeExtGet = {prop, fallback ->
++        rootProject.ext.has(prop) ? rootProject.ext.get(prop) : fallback
++    }
++    repositories {
++        google()
++        mavenCentral()
++    }
++    dependencies {
++        classpath "org.jetbrains.kotlin:kotlin-gradle-plugin:${safeExtGet('kotlinVersion', '1.9.24')}"
++    }
+ }
+ 
+ apply plugin: 'com.android.library'
+ apply plugin: 'kotlin-android'
+ 
+-def getExtOrDefault(name) {
+-  return rootProject.ext.has(name) ? rootProject.ext.get(name) : project.properties['ClearCache_' + name]
++def getExtOrDefault(name, defaultValue) {
++    return rootProject.ext.has(name) ? rootProject.ext.get(name) : defaultValue
+ }
+ 
+-def getExtOrIntegerDefault(name) {
+-  return rootProject.ext.has(name) ? rootProject.ext.get(name) : (project.properties['ClearCache_' + name]).toInteger()
++def getExtOrIntegerDefault(name, defaultValue) {
++    return rootProject.ext.has(name) ? rootProject.ext.get(name) : defaultValue
+ }
+ 
+ android {
+-  compileSdkVersion getExtOrIntegerDefault('compileSdkVersion')
+-  buildToolsVersion getExtOrDefault('buildToolsVersion')
+-  defaultConfig {
+-    minSdkVersion 16
+-    targetSdkVersion getExtOrIntegerDefault('targetSdkVersion')
+-    versionCode 1
+-    versionName "1.0"
++    namespace "com.reactnativeclearcache"
+ 
+-  }
++    compileSdkVersion getExtOrIntegerDefault('compileSdkVersion', 34)
++    buildToolsVersion getExtOrDefault('buildToolsVersion', '34.0.0')
+ 
+-  buildTypes {
+-    release {
+-      minifyEnabled false
++    defaultConfig {
++        minSdkVersion getExtOrIntegerDefault('minSdkVersion', 24)
++        targetSdkVersion getExtOrIntegerDefault('targetSdkVersion', 34)
++        versionCode 1
++        versionName "1.0"
+     }
+-  }
+-  lintOptions {
+-    disable 'GradleCompatible'
+-  }
+-  compileOptions {
+-    sourceCompatibility JavaVersion.VERSION_1_8
+-    targetCompatibility JavaVersion.VERSION_1_8
+-  }
+-}
+-
+-repositories {
+-  mavenCentral()
+-  jcenter()
+-  google()
+ 
+-  def found = false
+-  def defaultDir = null
+-  def androidSourcesName = 'React Native sources'
+-
+-  if (rootProject.ext.has('reactNativeAndroidRoot')) {
+-    defaultDir = rootProject.ext.get('reactNativeAndroidRoot')
+-  } else {
+-    defaultDir = new File(
+-            projectDir,
+-            '/../../../node_modules/react-native/android'
+-    )
+-  }
+-
+-  if (defaultDir.exists()) {
+-    maven {
+-      url defaultDir.toString()
+-      name androidSourcesName
++    sourceSets {
++        main {
++            java.srcDirs += ['src/main/java', 'src/main/kotlin']
++        }
+     }
+ 
+-    logger.info(":${project.name}:reactNativeAndroidRoot ${defaultDir.canonicalPath}")
+-    found = true
+-  } else {
+-    def parentDir = rootProject.projectDir
+-
+-    1.upto(5, {
+-      if (found) return true
+-      parentDir = parentDir.parentFile
+-
+-      def androidSourcesDir = new File(
+-              parentDir,
+-              'node_modules/react-native'
+-      )
+-
+-      def androidPrebuiltBinaryDir = new File(
+-              parentDir,
+-              'node_modules/react-native/android'
+-      )
+-
+-      if (androidPrebuiltBinaryDir.exists()) {
+-        maven {
+-          url androidPrebuiltBinaryDir.toString()
+-          name androidSourcesName
++    buildTypes {
++        release {
++            minifyEnabled false
+         }
++    }
+ 
+-        logger.info(":${project.name}:reactNativeAndroidRoot ${androidPrebuiltBinaryDir.canonicalPath}")
+-        found = true
+-      } else if (androidSourcesDir.exists()) {
+-        maven {
+-          url androidSourcesDir.toString()
+-          name androidSourcesName
+-        }
++    lintOptions {
++        abortOnError false
++    }
+ 
+-        logger.info(":${project.name}:reactNativeAndroidRoot ${androidSourcesDir.canonicalPath}")
+-        found = true
+-      }
+-    })
+-  }
++    compileOptions {
++        sourceCompatibility JavaVersion.VERSION_17
++        targetCompatibility JavaVersion.VERSION_17
++    }
+ 
+-  if (!found) {
+-    throw new GradleException(
+-            "${project.name}: unable to locate React Native android sources. " +
+-                    "Ensure you have you installed React Native as a dependency in your project and try again."
+-    )
+-  }
++    kotlinOptions {
++        jvmTarget = "17"
++    }
+ }
+ 
+-def kotlin_version = getExtOrDefault('kotlinVersion')
++repositories {
++    google()
++    mavenCentral()
++}
+ 
+ dependencies {
+-  // noinspection GradleDynamicVersion
+-  api 'com.facebook.react:react-native:+'
+-  implementation "org.jetbrains.kotlin:kotlin-stdlib:$kotlin_version"
+-  implementation 'org.jetbrains.kotlinx:kotlinx-coroutines-android:1.3.9'
++    implementation 'com.facebook.react:react-android'
++    implementation "org.jetbrains.kotlin:kotlin-stdlib"
++    implementation 'org.jetbrains.kotlinx:kotlinx-coroutines-android:1.7.3'
+ }
+\ No newline at end of file

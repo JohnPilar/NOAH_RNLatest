@@ -1,3 +1,4 @@
 <resources>
-    <string name="app_name">NOAH_RNLatest</string>
+    <string name="app_name">NOAH</string>
+    <string name="route_name">com.promptus8.noah</string>
 </resources>
