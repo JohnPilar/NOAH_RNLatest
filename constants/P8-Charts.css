@@ -1,0 +1,135 @@
+
+p{
+    margin: 5px;
+    text-align: center;
+}
+td.name{
+    margin: 5px;
+    text-align: left;
+    max-width: 150px;
+}
+td.open{
+    margin: 5px;
+    text-align: left;
+}
+td.high{
+    margin: 5px;
+    text-align: left;
+}
+td.low{
+    margin: 5px;
+    text-align: left;
+}
+td.close{
+    margin: 5px;
+    text-align: left;
+}
+td.averagename{
+    text-align: left;
+}
+td.total{
+    text-align: left;
+}
+td.value{
+    text-align: right;
+}
+td.percent{
+    text-align: right;
+}
+td.bubblevalue{
+    text-align: right;
+}
+table.center{
+    margin-left: auto;
+    margin-right: auto;
+}
+.tabledraw{
+    border-style: solid;
+    border-width: 1px;
+    border-color: gray;
+}
+#square{
+    height: 2px;
+    width: 14px;
+}
+#circle{
+    height: 14px;
+    width: 14px;
+    border-radius: 50%;
+}
+#triangle-up{
+    width: 0;
+    height: 0;
+    border-left: 7px solid transparent;
+    border-right: 7px solid transparent;
+    border-bottom-width: 14px;
+    border-bottom-style: solid;
+}
+#triangle-down{
+    width: 0;
+    height: 0;
+    border-left: 7px solid transparent;
+    border-right: 7px solid transparent;
+    border-top-width: 14px;
+    border-top-style: solid;
+}
+#triangle-left{
+    width: 0;
+    height: 0;
+    border-top: 7px solid transparent;
+    border-right-width: 14px;
+    border-right-style: solid;
+    border-bottom: 7px solid transparent;
+}
+#triangle-right{
+    width: 0;
+    height: 0;
+    border-top: 7px solid transparent;
+    border-left-width: 14px;
+    border-left-style: solid;
+    border-bottom: 7px solid transparent;
+}
+/*#star-five {
+  position: relative;
+  display: block;
+  width: 0px;
+  height: 0px;
+  margin: 50px 0;
+  color: #32557f;
+  border-left: 100px solid transparent;
+  border-right: 100px solid transparent;
+  border-bottom: 70px solid #32557f;
+  transform: rotate(35deg);
+
+  &::before {
+    content: '';
+    position: absolute;
+    top: -45px;
+    left: -65px;
+    display: block;
+    height: 0;
+    width: 0;
+    border-left: 30px solid transparent;
+    border-right: 30px solid transparent;
+    border-bottom: 80px solid #32557f;
+    transform: rotate(-35deg);
+  }
+
+  &::after {
+    content: '';
+    position: absolute;
+    top: 3px;
+    left: -105px;
+    display: block;
+    width: 0px;
+    height: 0px;
+    color: #32557f;
+    border-left: 100px solid transparent;
+    border-right: 100px solid transparent;
+    border-bottom: 70px solid #32557f;
+    transform: rotate(-70deg);
+  }
+}*/
+/*div.tooltip{
+    background: rgba(255, 255, 255, 0.75);
+}*/

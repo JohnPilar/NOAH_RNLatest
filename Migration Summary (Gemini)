@@ -1,0 +1,88 @@
+# Full Chat Summary: React Native 0.87.1 Android Setup & Troubleshooting
+
+## 1. Project Context & Environment
+- **Platform**: Windows OS
+- **Framework**: React Native 0.87.1 (New Architecture enabled)
+- **Android Toolchain**: Android Gradle Plugin (AGP 8.x/9.x), Gradle 8/9, Java/JDK 17
+- **Target Application ID**: `com.promptus8.noah`
+- **Objective**: Configure a stable, production-ready Android environment integrating native libraries across multiple feature domains while optimizing build speeds and handling legacy dependency issues.
+
+---
+
+## 2. Library Suite Installed
+
+### Batch A: Navigation & Gestures
+- `@react-navigation/native`, `@react-navigation/stack`, `@react-navigation/bottom-tabs`
+- `react-native-screens`, `react-native-safe-area-context`, `react-native-gesture-handler`
+
+### Batch B: Storage, Network & Utilities
+- `@react-native-async-storage/async-storage`, `react-native-encrypted-storage`
+- `react-native-device-info`, `@react-native-community/netinfo`
+- `react-native-permissions`, `react-native-blob-util`
+
+### Batch C: Firebase & Notifications
+- `@react-native-firebase/app`, `@react-native-firebase/messaging`, `@notifee/react-native`
+
+### Batch D: UI, Forms & Pickers
+- `react-native-paper`, `react-native-vector-icons`, `react-native-svg`, `react-native-svg-transformer`
+- `react-native-keyboard-controller`, `react-native-modal`, `react-native-calendars`
+- `react-native-date-picker`, `react-native-month-year-picker`
+- `@react-native-documents/picker`, `react-native-image-picker`
+*(Excluded: `@react-native-community/datetimepicker`, `react-native-modern-datepicker`)*
+
+### Batch E: Security, Hardware & Background Services
+- `@pagopa/io-react-native-integrity`, `jail-monkey`, `react-native-biometrics`
+- `react-native-background-actions`, `react-native-battery-optimization-check`
+- `react-native-exit-app`, `react-native-restart`, `react-native-geolocation-service`, `@turf/turf`
+*(Excluded: `react-native-crypto-js`, `react-native-sound-player`)*
+
+### Batch F: Camera, Multimedia, Database & Utilities
+- `react-native-vision-camera`, `react-native-nitro-modules` (peer dependency for Vision Camera v4)
+- `rn-qr-generator`, `react-native-qrcode-styled`
+- `react-native-maps`, `react-native-webview`, `react-native-sound`, `react-native-view-shot`
+- `react-native-sqlite-storage`, `@ruanitto/react-native-ntp-sync`
+- `crypto-js`, `react-native-rsa-native`, `react-native-event-listeners`, `link-preview-js`, `xdate`
+- `patch-package` (dev dependency for persistent native fixes)
+*(Uninstalled: `@type-any/react-native-clear-cache` due to irreconcilable namespace/AGP defects)*
+
+---
+
+## 3. Build Performance Optimizations (Resolving 19m+ Builds)
+
+1. **ABI Target Restriction**:
+   - Configured `android/gradle.properties` with `reactNativeArchitectures=arm64-v8a` (or `x86_64` for emulators) to prevent compiling redundant C++ architecture slices during development.
+2. **JVM & Daemon Memory**:
+   - Added `org.gradle.jvmargs=-Xmx6144m -XX:MaxMetaspaceSize=1024m -XX:+UseParallelGC -Dfile.encoding=UTF-8`.
+   - Enabled `org.gradle.parallel=true` and `org.gradle.caching=true`.
+   - Explicitly kept `org.gradle.configuration-cache=false` to prevent conflicts with legacy third-party Node-spawning build scripts.
+3. **OS-Level Enhancements**:
+   - Added Windows Defender folder exclusions for project workspace (`NOAH_RNLatest`), `$HOME\.gradle`, and Android SDK directories.
+   - Enabled Windows long paths (`LongPathsEnabled = 1` and `git config --system core.longpaths true`).
+4. **Build Execution Rule**:
+   - Transitioned standard runs from `gradlew clean` to incremental builds using `npx react-native run-android --active-arch-only`.
+
+---
+
+## 4. Library Issues Resolved via `patch-package`
+
+1. **`react-native-date-picker`**:
+   - *Issue*: `proguard-android.txt` rejected by AGP 8+/R8.
+   - *Fix*: Replaced reference with `proguard-android-optimize.txt` inside `node_modules/react-native-date-picker/android/build.gradle`.
+2. **`react-native-rsa-native`**:
+   - *Issue*: `Could not find method jcenter()`.
+   - *Fix*: Stripped all `jcenter()` repository references in `node_modules/react-native-rsa-native/android/build.gradle`, standardizing on `mavenCentral()`.
+3. **`react-native-sqlite-storage`**:
+   - *Issue*: Failed resolving ancient AGP 3.1.4 classpath artifacts.
+   - *Fix*: Overrode `platforms/android/build.gradle` with a modern Android library setup targeting SDK 34 and `implementation 'com.facebook.react:react-android'`.
+4. **`react-native-vision-camera`**:
+   - *Issue*: Missing `:react-native-nitro-modules` project dependency.
+   - *Fix*: Installed `react-native-nitro-modules` as a direct dependency.
+5. **`@type-any/react-native-clear-cache`**:
+   - *Issue*: Hardcoded AGP 3.2.1, Kotlin compiler mismatches, and namespace conflict (`com.typeany.clearcache` vs `com.reactnativeclearcache`) leading to autolinking failures in `PackageList.java`.
+   - *Resolution*: Completely uninstalled the package and deleted associated patches; functionality delegated to `react-native-blob-util`.
+
+---
+
+## 5. Tooling & Environment Paths
+- **`ninja.exe` Path**: Located under the Android SDK CMake distribution:
+  `C:\Users\noahf\AppData\Local\Android\Sdk\cmake\<version>\bin\ninja.exe`
