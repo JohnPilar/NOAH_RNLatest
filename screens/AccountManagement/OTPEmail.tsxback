@@ -1,0 +1,330 @@
+import React, {useState, useEffect, useRef, useContext} from 'react';
+import {Text, StyleSheet, Image, TextInput, ScrollView, View, TouchableWithoutFeedback, Keyboard, BackHandler, Platform} from 'react-native';
+
+// External Hooks & Utils
+import {useDeviceOrientation} from '@react-native-community/hooks';
+import DeviceInfo from 'react-native-device-info';
+import {KeyboardAvoidingView} from 'react-native-keyboard-controller';
+import {useRoute, useNavigation, RouteProp} from '@react-navigation/native';
+
+// Project Imports
+import {NmResendEmailOTP, NmValidateOTP, NmResendOTPCode} from '../../functions/NmNetwork.tsx';
+import {NmHasInternet} from '../../functions/NmFunctions.tsx';
+import {APP_CONST} from '../../constants/NmConstants.js';
+import {NmButton, LoadingScreen} from '../../components/index.jsx';
+import {ThemesContext} from '../../functions/ThemeContext.tsx';
+import {UIConfig} from '../../Global/UIConfig.js';
+import {AccountDetailsContext} from '../../functions/Contexts.tsx';
+
+/**
+ * 1. Define types for the Navigation Route Params
+ * This ensures 'route.params' properties are recognized.
+ */
+type RootStackParamList = {
+  OTPEmail: {
+    ChangeEmail?: boolean;
+    OTPCode?: string;
+    user?: any; // Replace 'any' with your User type if available
+    pwtku?: string;
+    newAccount?: boolean;
+    changeType?: number;
+  };
+};
+
+// Type for the specific route prop
+type OTPEmailRouteProp = RouteProp<RootStackParamList, 'OTPEmail'>;
+
+/**
+ * 2. Component Props Interface
+ * Since you use 'props.navigation', we define it here.
+ */
+interface OTPEmailProps {
+  navigation: any; // Ideally use NativeStackNavigationProp if using @react-navigation/native-stack
+}
+
+const OTPEmail: React.FC<OTPEmailProps> = props => {
+  // 3. Typed Refs: Specify that this ref is for a TextInput
+  const otpInput = useRef<TextInput>(null);
+
+  const orientation = useDeviceOrientation();
+  const {theme} = useContext(ThemesContext) as any;
+  const {recuser} = useContext(AccountDetailsContext);
+
+  // 4. Typed Route: Hooks into our ParamList defined above
+  const route = useRoute<OTPEmailRouteProp>();
+
+  // 5. State Typing: Most are inferred, but explicit types help with clarity
+  const [screenWidth, setScreenWidth] = useState<string | number>('100%');
+  const [mobileOTP, setMobileOTP] = useState<string>('');
+  const [errorMessage, setErrorMessage] = useState<string | undefined>('');
+  const [resendDecor, setResendDecor] = useState<boolean>(false);
+  const [loading, setLoading] = useState<boolean>(false);
+
+  // Destructure with default values
+  const {ChangeEmail = false, OTPCode = '', user, pwtku, newAccount = false, changeType} = route.params || {};
+
+  // Initialize OTP state with the param value
+  const [OTP, setOTP] = useState<string>(OTPCode);
+
+  useEffect(() => {
+    const handleBackButton = (): boolean => {
+      if (loading) {
+        setLoading(false);
+        return true; // Return true to prevent default behavior
+      }
+
+      if (ChangeEmail) {
+        props.navigation.goBack();
+        return true;
+      } else {
+        if (changeType === 1) {
+          props.navigation.pop();
+          props.navigation.navigate('Home');
+          return true;
+        } else {
+          props.navigation.navigate('LoginOptionScreen');
+          return true;
+        }
+      }
+    };
+
+    const backHandler = BackHandler.addEventListener('hardwareBackPress', handleBackButton);
+    return () => backHandler.remove();
+  }, [loading, ChangeEmail, changeType]);
+
+  useEffect(() => {
+    // Explicitly check device type string
+    if (DeviceInfo.getDeviceType().toUpperCase() === 'TABLET') {
+      if (orientation === 'portrait') {
+        setScreenWidth('50%');
+      } else {
+        setScreenWidth('35%');
+      }
+    }
+  }, [orientation]);
+
+  const checkOTP = () => {
+    Keyboard.dismiss();
+    setLoading(true);
+
+    // Note: Ensure NmValidateOTP is typed in its source file for best results
+    NmValidateOTP(user, mobileOTP).then((result: any) => {
+      setLoading(false);
+
+      if (result?.status !== '404') {
+        const OTPStatus = result?.data?.OTPStatus;
+
+        if (OTPStatus === APP_CONST.OTP_RESULT_VALID) {
+          if (ChangeEmail) {
+            props.navigation.navigate('NewEmail', {user: user});
+          } else {
+            if (!newAccount) {
+              props.navigation.navigate('NewPassword', {newAccount: false, pwtku: pwtku});
+            }
+          }
+        } else if (OTPStatus === APP_CONST.OTP_RESULT_INVALID) {
+          showError('Error: Invalid OTP Code. Please try again.');
+          clearText();
+        } else if (OTPStatus === APP_CONST.OTP_RESULT_EXPIRED) {
+          showError('Error: OTP Code Expired. Please request a new one.');
+        } else {
+          showError('Error: Unknown error occurred.');
+        }
+      } else {
+        showError('Error: Unable to request new OTP code');
+      }
+    });
+  };
+
+  // Timer Logic
+  const timerCooldown = 120;
+  const [timerCount, setTimer] = useState<number>(timerCooldown);
+  const [timerText, setTimerText] = useState<string>('02:00');
+  const [timerActive, setTimerActive] = useState<boolean>(false);
+
+  // 6. startTimer now expects the interval ID (number or Timeout object)
+  const startTimer = (interval?: any) => {
+    setTimer(lastTimerCount => {
+      if (lastTimerCount <= 0) {
+        setTimerActive(false);
+        return timerCooldown;
+      } else {
+        if (lastTimerCount <= 1 && interval) clearInterval(interval);
+        return lastTimerCount - 1;
+      }
+    });
+
+    const minutesNum = Math.floor(timerCount / 60);
+    const secondsNum = timerCount - minutesNum * 60;
+
+    const minutes = minutesNum < 10 ? `0${minutesNum}` : `${minutesNum}`;
+    const seconds = secondsNum < 10 ? `0${secondsNum}` : `${secondsNum}`;
+
+    setTimerText(`${minutes}:${seconds}`);
+  };
+
+  useEffect(() => {
+    let interval: any;
+    if (timerActive) {
+      interval = setInterval(() => {
+        startTimer(interval);
+      }, 1000);
+    }
+    return () => clearInterval(interval);
+  }, [timerActive, timerCount]); // Dependencies added for consistency
+
+  function clearText() {
+    otpInput.current?.clear();
+  }
+
+  const showError = (err: string) => {
+    setErrorMessage(err);
+    setTimeout(() => {
+      setErrorMessage('');
+    }, 7000);
+  };
+
+  return (
+    <KeyboardAvoidingView behavior={'padding'} keyboardVerticalOffset={Platform.OS === 'android' ? -50 : -70} style={{flex: 1}}>
+      <TouchableWithoutFeedback onPress={Keyboard.dismiss}>
+        <View style={[styles.container, {backgroundColor: theme.backgroundColor}]}>
+          <ScrollView contentContainerStyle={{flexGrow: 1, alignItems: 'center'}} style={{width: '100%', paddingHorizontal: 16}} keyboardShouldPersistTaps="handled">
+            <View style={{alignItems: 'center', justifyContent: 'center', width: screenWidth as any, flex: 1}}>
+              {loading && <LoadingScreen />}
+
+              <View style={{width: '100%', alignItems: 'center'}}>
+                <Image source={UIConfig.RegOTPEmailIcon} style={{height: 150, resizeMode: 'contain', marginBottom: 40}} />
+                <Text style={[styles.iconTitle, {color: theme.textColor}]}>Enter OTP Verification</Text>
+                <Text style={styles.iconDescription}>Enter verification code sent to your email address</Text>
+              </View>
+
+              <View style={{minHeight: 24, width: '100%', justifyContent: 'center', marginTop: 10}}>
+                <Text style={styles.errorMessage}>{errorMessage}</Text>
+              </View>
+
+              <View style={[styles.textInputContainer, {marginTop: 20, marginBottom: 20, backgroundColor: theme.panelBackground, borderColor: theme.panelBorder}]}>
+                <TextInput ref={otpInput} maxLength={16} style={[styles.textInputStyle, {color: theme.textColor}]} onChangeText={value => setMobileOTP(value)} value={mobileOTP} />
+              </View>
+
+              <View style={{width: '100%'}}>
+                <NmButton
+                  buttonTheme="dark"
+                  titleStyle={styles.buttonTextStyle}
+                  title="Submit"
+                  onPress={() => {
+                    Keyboard.dismiss();
+                    NmHasInternet().then((result: boolean) => {
+                      if (result) {
+                        checkOTP();
+                      } else {
+                        showError('No Internet connection detected.');
+                      }
+                    });
+                  }}
+                />
+              </View>
+
+              <Text style={[styles.resendCodeLink, {color: theme.textColor}]}>
+                {"Didn't Receive Code?"}
+                {!timerActive && (
+                  <Text
+                    style={[styles.resendCodeLink, {textDecorationLine: resendDecor ? 'underline' : 'none'}]}
+                    onPress={() => {
+                      NmHasInternet().then((result: boolean) => {
+                        if (result) {
+                          setLoading(true);
+                          const action = ChangeEmail ? NmResendEmailOTP(APP_CONST.OTP_TYPE_EMAIL, recuser) : NmResendOTPCode(APP_CONST.OTP_TYPE_EMAIL, user);
+
+                          action.then((res: any) => {
+                            setLoading(false);
+                            if (res?.status === '200') {
+                              setMobileOTP('');
+                              setOTP(res.data.OTPCode);
+                              setTimerActive(true);
+                            } else {
+                              showError('Error Requesting New OTP Code');
+                            }
+                          });
+                          clearText();
+                        } else {
+                          showError('No Internet connection detected.');
+                        }
+                      });
+                    }}>
+                    {' '}
+                    Resend New Code
+                  </Text>
+                )}
+              </Text>
+
+              <Text style={[styles.errorMessage, {color: '#777', opacity: timerActive ? 1 : 0, marginBottom: 5}]}>
+                Resend code after <Text style={{color: '#466DC6'}}>{timerText}</Text>
+              </Text>
+            </View>
+          </ScrollView>
+        </View>
+      </TouchableWithoutFeedback>
+    </KeyboardAvoidingView>
+  );
+};
+
+// Styles remain largely the same, but using StyleSheet.create is good for performance
+const styles = StyleSheet.create({
+  container: {
+    flex: 1,
+    width: '100%',
+    alignItems: 'center',
+    justifyContent: 'center',
+    paddingTop: 24,
+  },
+  iconTitle: {
+    fontFamily: 'Poppins-Regular',
+    fontSize: 20,
+  },
+  iconDescription: {
+    width: '60%',
+    fontFamily: 'Poppins-Regular',
+    fontSize: 14,
+    color: '#A4A8B0',
+    textAlign: 'center',
+  },
+  textInputContainer: {
+    height: 45,
+    width: '100%',
+    borderWidth: 1,
+    borderRadius: 6,
+    flexDirection: 'row',
+    alignItems: 'center',
+    marginBottom: 20,
+  },
+  textInputStyle: {
+    height: 45,
+    paddingVertical: 0,
+    paddingLeft: 10,
+    flex: 1,
+    fontFamily: 'Poppins-Regular',
+    fontSize: 16,
+    textAlign: 'center',
+  },
+  buttonTextStyle: {
+    fontFamily: 'Poppins-Bold',
+    fontSize: 14,
+  },
+  errorMessage: {
+    fontFamily: 'Poppins-Regular',
+    fontSize: 14,
+    color: '#ff005e',
+    textAlign: 'center',
+    fontWeight: '400',
+  },
+  resendCodeLink: {
+    alignSelf: 'center',
+    marginTop: 20,
+    fontFamily: 'Poppins-Regular',
+    fontSize: 14,
+    color: '#466DC6',
+    fontWeight: '500',
+  },
+});
+
+export default OTPEmail;

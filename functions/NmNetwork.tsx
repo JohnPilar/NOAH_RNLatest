@@ -587,7 +587,7 @@ export const NmSendRegConfirmation = async (user: string, refNo: string) => {
   return json;
 };
 
-export const NmSendNewPassConfirmation = async (nwtku: string) => {
+export const NmSendNewPassConfirmation = async (nwtku?: string) => {
   const json: ApiResponse = {
     status: '404',
   };

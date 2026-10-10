@@ -1,0 +1,87 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <link rel="stylesheet" type="text/css" href="../constants/P8-Charts.css" />
+    <script type="text/javascript" src="../constants/P8-Charts.js"></script>
+  </head>
+  <body>
+    <div id="CanvasPie"></div>
+    <script>
+      var chart = new P8.PieChart('CanvasPie');
+      var size = {
+        width: 660,
+        height: 400,
+      };
+      //var alphabet = "ABCDEFG".split("");
+      var alphabet = 'ABCDEFGHIJKL'.split('');
+      var colors = ['red', 'orange', 'blue', 'gold', 'black', 'silver', 'green', 'hotpink', 'yellow', 'purple', 'skyblue', 'darkred'];
+      //var colors = ["red", "blue", "black", "green", "hotpink", "yellow", "white"];
+      var colordata = [];
+      for (var i = 0; i < colors.length; i++) {
+        colordata.push({
+          name: alphabet[i],
+          fill: colors[i],
+          filltype: 'color',
+        });
+      }
+
+      var data = [];
+      for (i = 0; i < colors.length; i++) {
+        data.push({
+          name: alphabet[i],
+          value: Math.floor(Math.random() * 100) + 1,
+          fill: colors[i],
+          filltype: 'color',
+        });
+      }
+      var legendposition = 'left';
+      var optionH = {
+        color: 'blue',
+        fontFamily: 'Arial',
+        fontSize: 12,
+        text: 'Pie Chart',
+        fontWeight: 'Bold',
+        fontStyle: 'Normal',
+        display: true,
+      };
+      var optionF = {
+        color: 'green',
+        fontFamily: 'Arial',
+        fontSize: 12,
+        text: 'Chart',
+        fontWeight: 'Bold',
+        fontStyle: 'Normal',
+        display: true,
+      };
+      var optionLegendFont = {
+        color: 'Black',
+        fontFamily: 'Times New Roman',
+        fontSize: 12,
+        fontWeight: 'Bold',
+        fontStyle: 'Normal',
+        display: true,
+      };
+      var optionLine = {
+        color: 'gray',
+        width: 1,
+      };
+      var background = 'linear-gradient(white,skyblue)'; //"white";
+      var animation = true;
+      var sort = true;
+      var ascending = true;
+      chart.SetData(data);
+      chart.SetHeader(optionH);
+      chart.SetFooter(optionF);
+      chart.SetBackground(background);
+      chart.SetLegendFont(optionLegendFont);
+      chart.SetLine(optionLine);
+      chart.SetSize(size);
+      chart.SetAnimation(animation);
+      chart.SetLegendPosition(legendposition);
+      chart.SetDegrees(0);
+      //chart.SetSort(sort);
+      //chart.SetAscending(ascending);
+      chart.Render();
+    </script>
+  </body>
+</html>

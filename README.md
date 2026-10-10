@@ -1,97 +1,62 @@
-This is a new [**React Native**](https://reactnative.dev) project, bootstrapped using [`@react-native-community/cli`](https://github.com/react-native-community/cli).
+## NOAH Mobile App running version 0.81
 
-# Getting Started
+### General Project Notes
 
-> **Note**: Make sure you have completed the [Set Up Your Environment](https://reactnative.dev/docs/set-up-your-environment) guide before proceeding.
+- JDK Version: 20.0.2
+- NodeJS Version: 22.19.0 (LTS)
+- Some libraries are downgraded due to some issues with the new RN version
+- NewArch IS DISABLED
 
-## Step 1: Start Metro
+### Modules Notes
 
-First, you will need to run **Metro**, the JavaScript build tool for React Native.
+- **react-native-vision-camera (version 4.7.2)**  
+  Edit the file located here:  
+  _/node_modules/react-native-vision-camera/android/src/main/java/com/mrousavy/camera/react/CameraDevicesManager.kt_  
+  This fixes app crashing when the app is reloaded
 
-To start the Metro dev server, run the following command from the root of your React Native project:
-
-```sh
-# Using npm
-npm start
-
-# OR using Yarn
-yarn start
+```kotlin
+   fun sendAvailableDevicesChangedEvent() {
+      //remove these lines
+     val eventEmitter = reactContext.getJSModule(RCTDeviceEventEmitter::class.java)
+     val devices = getDevicesJson()
+     eventEmitter.emit("CameraDevicesChanged", devices)
+      //replace them with these
+     if (reactContext.hasActiveReactInstance()) {
+       val eventEmitter = reactContext.getJSModule(RCTDeviceEventEmitter::class.java)
+       val devices = getDevicesJson()
+       eventEmitter.emit("CameraDevicesChanged", devices)
+     }
+   }
 ```
 
-## Step 2: Build and run your app
+### Mobile App Notes
 
-With Metro running, open a new terminal window/pane from the root of your React Native project, and use one of the following commands to build and run your Android or iOS app:
+- **app.config.tsxx**  
+  Different clients have different needs, please copy the current enabled configs in the _Config_ then modify them as needed, then just comment out the previous config.
 
-### Android
+```javascript
+// EXAMPLE MODIFICATION (ALWAYS INCLUDE THE CLIENT NAME ABOVE)
 
-```sh
-# Using npm
-npm run android
+  // NOAH/SCMS STANDARD
+  // APP_ENABLE_NOTIFICATION: true,
+  // APP_INCLUDE_DEMO_V1: true,
+  // HOME_SHOW_ANNOUNCEMENT: true,
+  // HOME_SHOW_NEWS: true,
+  // HOME_CLOCKINGSYSTEM: false,
 
-# OR using Yarn
-yarn android
+  // FPMC CONFIG
+  APP_ENABLE_NOTIFICATION: false,
+  APP_INCLUDE_DEMO_V1: false,
+  HOME_SHOW_ANNOUNCEMENT: false,
+  HOME_SHOW_NEWS: false,
+  HOME_CLOCKINGSYSTEM: false,
 ```
 
-### iOS
+- **iOS Podfile**  
+  Insert inside **target 'NOAH' do** below **config = use_native_modules!** before running **pod install**
 
-For iOS, remember to install CocoaPods dependencies (this only needs to be run on first clone or after updating native deps).
-
-The first time you create a new project, run the Ruby bundler to install CocoaPods itself:
-
-```sh
-bundle install
 ```
-
-Then, and every time you update your native dependencies, run:
-
-```sh
-bundle exec pod install
+use_frameworks! :linkage => :static
+$RNFirebaseAsStaticFramework = true
+use_modular_headers!
 ```
-
-For more information, please visit [CocoaPods Getting Started guide](https://guides.cocoapods.org/using/getting-started.html).
-
-```sh
-# Using npm
-npm run ios
-
-# OR using Yarn
-yarn ios
-```
-
-If everything is set up correctly, you should see your new app running in the Android Emulator, iOS Simulator, or your connected device.
-
-This is one way to run your app — you can also build it directly from Android Studio or Xcode.
-
-## Step 3: Modify your app
-
-Now that you have successfully run the app, let's make changes!
-
-Open `App.tsx` in your text editor of choice and make some changes. When you save, your app will automatically update and reflect these changes — this is powered by [Fast Refresh](https://reactnative.dev/docs/fast-refresh).
-
-When you want to forcefully reload, for example to reset the state of your app, you can perform a full reload:
-
-- **Android**: Press the <kbd>R</kbd> key twice or select **"Reload"** from the **Dev Menu**, accessed via <kbd>Ctrl</kbd> + <kbd>M</kbd> (Windows/Linux) or <kbd>Cmd ⌘</kbd> + <kbd>M</kbd> (macOS).
-- **iOS**: Press <kbd>R</kbd> in iOS Simulator.
-
-## Congratulations! :tada:
-
-You've successfully run and modified your React Native App. :partying_face:
-
-### Now what?
-
-- If you want to add this new React Native code to an existing application, check out the [Integration guide](https://reactnative.dev/docs/integration-with-existing-apps).
-- If you're curious to learn more about React Native, check out the [docs](https://reactnative.dev/docs/getting-started).
-
-# Troubleshooting
-
-If you're having issues getting the above steps to work, see the [Troubleshooting](https://reactnative.dev/docs/troubleshooting) page.
-
-# Learn More
-
-To learn more about React Native, take a look at the following resources:
-
-- [React Native Website](https://reactnative.dev) - learn more about React Native.
-- [Getting Started](https://reactnative.dev/docs/environment-setup) - an **overview** of React Native and how setup your environment.
-- [Learn the Basics](https://reactnative.dev/docs/getting-started) - a **guided tour** of the React Native **basics**.
-- [Blog](https://reactnative.dev/blog) - read the latest official React Native **Blog** posts.
-- [`@facebook/react-native`](https://github.com/facebook/react-native) - the Open Source; GitHub **repository** for React Native.
